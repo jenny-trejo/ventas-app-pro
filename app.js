@@ -17,9 +17,8 @@ const firebaseConfig = {
   projectId: "ventas-app-pro-d5bc9",
   storageBucket: "ventas-app-pro-d5bc9.firebasestorage.app",
   messagingSenderId: "340730905177",
-  appId: "1:340730905177:web:74e002a3af639f940ea748"
+  appId: "1:340730905177:web:214403d8b694d07d0ea748"
 };
-
 // Inicializar
 const app = initializeApp(firebaseConfig);
 const db = getFirestore(app);
