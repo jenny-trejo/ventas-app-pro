@@ -2,7 +2,11 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ventas Pro</title>
+<title>Ventas Pro Firebase</title>
+
+<!-- Firebase -->
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
 
 <style>
 * {
@@ -16,7 +20,6 @@ body {
   background: linear-gradient(135deg, #4e73df, #1cc88a);
   min-height: 100vh;
   padding: 30px;
-  color: #333;
 }
 
 .container {
@@ -53,19 +56,10 @@ h1 {
   background: #4e73df;
   color: white;
   cursor: pointer;
-  transition: 0.3s;
-}
-
-.form button:hover {
-  background: #2e59d9;
 }
 
 .logout {
   background: #e74a3b !important;
-}
-
-.logout:hover {
-  background: #c0392b !important;
 }
 
 table {
@@ -111,7 +105,7 @@ tr:nth-child(even) {
 
 <div class="container">
 
-<h1>💰 Sistema de Ventas</h1>
+<h1>💰 Sistema de Ventas Firebase</h1>
 
 <div class="card form">
   <input type="text" id="producto" placeholder="Producto">
@@ -141,7 +135,30 @@ tr:nth-child(even) {
 </div>
 
 <script>
-function agregarVenta() {
+// 🔥 CONFIG FIREBASE
+const firebaseConfig = {
+  apiKey: "AIzaSyAJyTl_JM46DEvKsNBbhXY-g-401DXDKX8",
+  authDomain: "ventas-app-pro-d5bc9.firebaseapp.com",
+  projectId: "ventas-app-pro-d5bc9",
+  storageBucket: "ventas-app-pro-d5bc9.firebasestorage.app",
+  messagingSenderId: "340730905177",
+  appId: "1:340730905177:web:3dcad510606332290ea748"
+};
+
+// Inicializar Firebase
+const app = firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+
+// 📥 CARGAR DATOS
+window.onload = async () => {
+  const snapshot = await db.collection("ventas").get();
+  snapshot.forEach(doc => {
+    pintarVenta(doc.id, doc.data());
+  });
+};
+
+// ➕ AGREGAR
+async function agregarVenta() {
   const producto = document.getElementById("producto").value;
   const precio = parseFloat(document.getElementById("precio").value);
   const cantidad = parseInt(document.getElementById("cantidad").value);
@@ -152,44 +169,67 @@ function agregarVenta() {
   }
 
   const total = precio * cantidad;
+
+  const docRef = await db.collection("ventas").add({
+    producto,
+    precio,
+    cantidad,
+    total
+  });
+
+  pintarVenta(docRef.id, { producto, precio, cantidad, total });
+
+  limpiar();
+}
+
+// 🖥️ MOSTRAR
+function pintarVenta(id, data) {
   const tabla = document.getElementById("tablaVentas");
 
   const fila = document.createElement("tr");
 
   fila.innerHTML = `
-    <td>${producto}</td>
-    <td>$${precio}</td>
-    <td>${cantidad}</td>
-    <td>$${total}</td>
+    <td>${data.producto}</td>
+    <td>$${data.precio}</td>
+    <td>${data.cantidad}</td>
+    <td>$${data.total}</td>
     <td class="actions">
-      <button class="edit" onclick="editarVenta(this)">Editar</button>
-      <button class="delete" onclick="eliminarVenta(this)">Eliminar</button>
+      <button class="edit" onclick="editarVenta('${id}', this)">Editar</button>
+      <button class="delete" onclick="eliminarVenta('${id}', this)">Eliminar</button>
     </td>
   `;
 
   tabla.appendChild(fila);
-
-  document.getElementById("producto").value = "";
-  document.getElementById("precio").value = "";
-  document.getElementById("cantidad").value = "";
 }
 
-function eliminarVenta(btn) {
+// ❌ ELIMINAR
+async function eliminarVenta(id, btn) {
   if (confirm("¿Eliminar producto?")) {
+    await db.collection("ventas").doc(id).delete();
     btn.closest("tr").remove();
   }
 }
 
-function editarVenta(btn) {
+// ✏️ EDITAR
+async function editarVenta(id, btn) {
   const fila = btn.closest("tr");
 
   document.getElementById("producto").value = fila.children[0].innerText;
   document.getElementById("precio").value = fila.children[1].innerText.replace("$","");
   document.getElementById("cantidad").value = fila.children[2].innerText;
 
+  await db.collection("ventas").doc(id).delete();
   fila.remove();
 }
 
+// 🧹 LIMPIAR
+function limpiar() {
+  document.getElementById("producto").value = "";
+  document.getElementById("precio").value = "";
+  document.getElementById("cantidad").value = "";
+}
+
+// 🔐 CERRAR SESIÓN
 function cerrarSesion() {
   alert("Sesión cerrada");
   window.location.href = "index.html";
