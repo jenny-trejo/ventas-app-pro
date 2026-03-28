@@ -14,7 +14,6 @@ import {
     messagingSenderId: "340730905177",
     appId: "1:340730905177:web:3dcad510606332290ea748"
   };
-  
 
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
