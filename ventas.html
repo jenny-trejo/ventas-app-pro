@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<title>Ventas Pro</title>
+
+<style>
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Segoe UI', sans-serif;
+}
+
+body {
+  background: linear-gradient(135deg, #4e73df, #1cc88a);
+  min-height: 100vh;
+  padding: 30px;
+  color: #333;
+}
+
+.container {
+  max-width: 900px;
+  margin: auto;
+}
+
+h1 {
+  text-align: center;
+  color: white;
+  margin-bottom: 20px;
+}
+
+.card {
+  background: white;
+  padding: 20px;
+  border-radius: 15px;
+  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+  margin-bottom: 20px;
+}
+
+.form input {
+  width: 30%;
+  padding: 12px;
+  margin: 5px;
+  border-radius: 8px;
+  border: 1px solid #ccc;
+}
+
+.form button {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #4e73df;
+  color: white;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+.form button:hover {
+  background: #2e59d9;
+}
+
+.logout {
+  background: #e74a3b !important;
+}
+
+.logout:hover {
+  background: #c0392b !important;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+th {
+  background: #4e73df;
+  color: white;
+}
+
+th, td {
+  padding: 12px;
+  text-align: center;
+}
+
+tr:nth-child(even) {
+  background: #f8f9fc;
+}
+
+.actions button {
+  padding: 6px 10px;
+  margin: 2px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+}
+
+.edit {
+  background: #f6c23e;
+  color: white;
+}
+
+.delete {
+  background: #e74a3b;
+  color: white;
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>💰 Sistema de Ventas</h1>
+
+<div class="card form">
+  <input type="text" id="producto" placeholder="Producto">
+  <input type="number" id="precio" placeholder="Precio">
+  <input type="number" id="cantidad" placeholder="Cantidad">
+  
+  <br>
+  <button onclick="agregarVenta()">Agregar</button>
+  <button class="logout" onclick="cerrarSesion()">Cerrar Sesión</button>
+</div>
+
+<div class="card">
+  <table>
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Precio</th>
+        <th>Cantidad</th>
+        <th>Total</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tablaVentas"></tbody>
+  </table>
+</div>
+
+</div>
+
+<script>
+function agregarVenta() {
+  const producto = document.getElementById("producto").value;
+  const precio = parseFloat(document.getElementById("precio").value);
+  const cantidad = parseInt(document.getElementById("cantidad").value);
+
+  if (!producto || !precio || !cantidad) {
+    alert("Completa los campos");
+    return;
+  }
+
+  const total = precio * cantidad;
+  const tabla = document.getElementById("tablaVentas");
+
+  const fila = document.createElement("tr");
+
+  fila.innerHTML = `
+    <td>${producto}</td>
+    <td>$${precio}</td>
+    <td>${cantidad}</td>
+    <td>$${total}</td>
+    <td class="actions">
+      <button class="edit" onclick="editarVenta(this)">Editar</button>
+      <button class="delete" onclick="eliminarVenta(this)">Eliminar</button>
+    </td>
+  `;
+
+  tabla.appendChild(fila);
+
+  document.getElementById("producto").value = "";
+  document.getElementById("precio").value = "";
+  document.getElementById("cantidad").value = "";
+}
+
+function eliminarVenta(btn) {
+  if (confirm("¿Eliminar producto?")) {
+    btn.closest("tr").remove();
+  }
+}
+
+function editarVenta(btn) {
+  const fila = btn.closest("tr");
+
+  document.getElementById("producto").value = fila.children[0].innerText;
+  document.getElementById("precio").value = fila.children[1].innerText.replace("$","");
+  document.getElementById("cantidad").value = fila.children[2].innerText;
+
+  fila.remove();
+}
+
+function cerrarSesion() {
+  alert("Sesión cerrada");
+  window.location.href = "index.html";
+}
+</script>
+
+</body>
+</html>
