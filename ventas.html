@@ -2,122 +2,89 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<title>Ventas Pro Firebase</title>
-
-<!-- Firebase -->
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js"></script>
-
+<title>CRUD Ventas</title>
 <style>
-* {
-  margin: 0;
-  padding: 0;
-  box-sizing: border-box;
-  font-family: 'Segoe UI', sans-serif;
-}
-
 body {
-  background: linear-gradient(135deg, #4e73df, #1cc88a);
-  min-height: 100vh;
-  padding: 30px;
+  font-family: Arial, sans-serif;
+  background: linear-gradient(135deg, #667eea, #764ba2);
+  color: #333;
+  padding: 20px;
 }
 
 .container {
   max-width: 900px;
   margin: auto;
-}
-
-h1 {
-  text-align: center;
-  color: white;
-  margin-bottom: 20px;
-}
-
-.card {
   background: white;
   padding: 20px;
   border-radius: 15px;
   box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+}
+
+h2 {
+  text-align: center;
   margin-bottom: 20px;
 }
 
-.form input {
-  width: 30%;
-  padding: 12px;
+input {
+  padding: 10px;
   margin: 5px;
   border-radius: 8px;
   border: 1px solid #ccc;
 }
 
-.form button {
-  padding: 12px 20px;
+button {
+  padding: 10px 15px;
   border: none;
   border-radius: 8px;
-  background: #4e73df;
-  color: white;
   cursor: pointer;
+  margin: 5px;
 }
 
-.logout {
-  background: #e74a3b !important;
+.add-btn { background: #28a745; color: white; }
+.edit-btn { background: #ffc107; }
+.delete-btn { background: #dc3545; color: white; }
+.logout-btn {
+  background: #343a40;
+  color: white;
+  float: right;
 }
 
 table {
   width: 100%;
   border-collapse: collapse;
-}
-
-th {
-  background: #4e73df;
-  color: white;
+  margin-top: 20px;
 }
 
 th, td {
-  padding: 12px;
+  padding: 10px;
+  border-bottom: 1px solid #ddd;
   text-align: center;
 }
 
-tr:nth-child(even) {
-  background: #f8f9fc;
-}
-
-.actions button {
-  padding: 6px 10px;
-  margin: 2px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-}
-
-.edit {
-  background: #f6c23e;
+th {
+  background: #667eea;
   color: white;
 }
 
-.delete {
-  background: #e74a3b;
-  color: white;
+.total {
+  text-align: right;
+  margin-top: 15px;
+  font-size: 18px;
+  font-weight: bold;
 }
 </style>
 </head>
-
 <body>
 
 <div class="container">
+  <button class="logout-btn" onclick="logout()">Cerrar Sesión</button>
+  <h2>Sistema de Ventas</h2>
 
-<h1>💰 Sistema de Ventas Firebase</h1>
-
-<div class="card form">
   <input type="text" id="producto" placeholder="Producto">
   <input type="number" id="precio" placeholder="Precio">
   <input type="number" id="cantidad" placeholder="Cantidad">
-  
-  <br>
-  <button onclick="agregarVenta()">Agregar</button>
-  <button class="logout" onclick="cerrarSesion()">Cerrar Sesión</button>
-</div>
+  <button class="add-btn" onclick="agregarProducto()">Agregar</button>
 
-<div class="card">
   <table>
     <thead>
       <tr>
@@ -128,112 +95,96 @@ tr:nth-child(even) {
         <th>Acciones</th>
       </tr>
     </thead>
-    <tbody id="tablaVentas"></tbody>
+    <tbody id="tabla"></tbody>
   </table>
-</div>
 
+  <div class="total" id="totalGeneral">Total: $0</div>
 </div>
 
 <script>
-// 🔥 CONFIG FIREBASE
-const firebaseConfig = {
-  apiKey: "AIzaSyAJyTl_JM46DEvKsNBbhXY-g-401DXDKX8",
-  authDomain: "ventas-app-pro-d5bc9.firebaseapp.com",
-  projectId: "ventas-app-pro-d5bc9",
-  storageBucket: "ventas-app-pro-d5bc9.firebasestorage.app",
-  messagingSenderId: "340730905177",
-  appId: "1:340730905177:web:3dcad510606332290ea748"
-};
+let productos = JSON.parse(localStorage.getItem('productos')) || [];
+let editIndex = -1;
 
-// Inicializar Firebase
-const app = firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
+function guardarLocal() {
+  localStorage.setItem('productos', JSON.stringify(productos));
+}
 
-// 📥 CARGAR DATOS
-window.onload = async () => {
-  const snapshot = await db.collection("ventas").get();
-  snapshot.forEach(doc => {
-    pintarVenta(doc.id, doc.data());
+function renderizar() {
+  const tabla = document.getElementById('tabla');
+  tabla.innerHTML = '';
+  let totalGeneral = 0;
+
+  productos.forEach((p, i) => {
+    const total = p.precio * p.cantidad;
+    totalGeneral += total;
+
+    tabla.innerHTML += `
+      <tr>
+        <td>${p.nombre}</td>
+        <td>$${p.precio}</td>
+        <td>${p.cantidad}</td>
+        <td>$${total}</td>
+        <td>
+          <button class="edit-btn" onclick="editar(${i})">Editar</button>
+          <button class="delete-btn" onclick="eliminar(${i})">Eliminar</button>
+        </td>
+      </tr>
+    `;
   });
-};
 
-// ➕ AGREGAR
-async function agregarVenta() {
-  const producto = document.getElementById("producto").value;
-  const precio = parseFloat(document.getElementById("precio").value);
-  const cantidad = parseInt(document.getElementById("cantidad").value);
+  document.getElementById('totalGeneral').innerText = 'Total: $' + totalGeneral;
+}
 
-  if (!producto || !precio || !cantidad) {
-    alert("Completa los campos");
+function agregarProducto() {
+  const nombre = document.getElementById('producto').value;
+  const precio = parseFloat(document.getElementById('precio').value);
+  const cantidad = parseInt(document.getElementById('cantidad').value);
+
+  if (!nombre || !precio || !cantidad) {
+    alert('Completa todos los campos');
     return;
   }
 
-  const total = precio * cantidad;
-
-  const docRef = await db.collection("ventas").add({
-    producto,
-    precio,
-    cantidad,
-    total
-  });
-
-  pintarVenta(docRef.id, { producto, precio, cantidad, total });
+  if (editIndex === -1) {
+    productos.push({ nombre, precio, cantidad });
+  } else {
+    productos[editIndex] = { nombre, precio, cantidad };
+    editIndex = -1;
+  }
 
   limpiar();
+  guardarLocal();
+  renderizar();
 }
 
-// 🖥️ MOSTRAR
-function pintarVenta(id, data) {
-  const tabla = document.getElementById("tablaVentas");
-
-  const fila = document.createElement("tr");
-
-  fila.innerHTML = `
-    <td>${data.producto}</td>
-    <td>$${data.precio}</td>
-    <td>${data.cantidad}</td>
-    <td>$${data.total}</td>
-    <td class="actions">
-      <button class="edit" onclick="editarVenta('${id}', this)">Editar</button>
-      <button class="delete" onclick="eliminarVenta('${id}', this)">Eliminar</button>
-    </td>
-  `;
-
-  tabla.appendChild(fila);
+function editar(index) {
+  const p = productos[index];
+  document.getElementById('producto').value = p.nombre;
+  document.getElementById('precio').value = p.precio;
+  document.getElementById('cantidad').value = p.cantidad;
+  editIndex = index;
 }
 
-// ❌ ELIMINAR
-async function eliminarVenta(id, btn) {
-  if (confirm("¿Eliminar producto?")) {
-    await db.collection("ventas").doc(id).delete();
-    btn.closest("tr").remove();
+function eliminar(index) {
+  if (confirm('¿Eliminar producto?')) {
+    productos.splice(index, 1);
+    guardarLocal();
+    renderizar();
   }
 }
 
-// ✏️ EDITAR
-async function editarVenta(id, btn) {
-  const fila = btn.closest("tr");
-
-  document.getElementById("producto").value = fila.children[0].innerText;
-  document.getElementById("precio").value = fila.children[1].innerText.replace("$","");
-  document.getElementById("cantidad").value = fila.children[2].innerText;
-
-  await db.collection("ventas").doc(id).delete();
-  fila.remove();
-}
-
-// 🧹 LIMPIAR
 function limpiar() {
-  document.getElementById("producto").value = "";
-  document.getElementById("precio").value = "";
-  document.getElementById("cantidad").value = "";
+  document.getElementById('producto').value = '';
+  document.getElementById('precio').value = '';
+  document.getElementById('cantidad').value = '';
 }
 
-// 🔐 CERRAR SESIÓN
-function cerrarSesion() {
-  alert("Sesión cerrada");
-  window.location.href = "index.html";
+function logout() {
+  alert('Sesión cerrada');
+  window.location.reload();
 }
+
+renderizar();
 </script>
 
 </body>
