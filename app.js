@@ -12,12 +12,12 @@ import {
 
 // Configuración Firebase
 const firebaseConfig = {
-  apiKey: "AIzaSyDbEapjqxuTKX66FVVVmmupODICELDaZiQ",
-  authDomain: "ventas-app-pro-a9cd9.firebaseapp.com",
-  projectId: "ventas-app-pro-a9cd9",
-  storageBucket: "ventas-app-pro-a9cd9.firebasestorage.app",
-  messagingSenderId: "1016497801010",
-  appId: "1:1016497801010:web:0f1324a2f2247f6d0a392b"
+  apiKey: "AIzaSyAJyTl_JM46DEvKsNBbhXY-g-401DXDKX8",
+  authDomain: "ventas-app-pro-d5bc9.firebaseapp.com",
+  projectId: "ventas-app-pro-d5bc9",
+  storageBucket: "ventas-app-pro-d5bc9.firebasestorage.app",
+  messagingSenderId: "340730905177",
+  appId: "1:340730905177:web:74e002a3af639f940ea748"
 };
 
 // Inicializar
